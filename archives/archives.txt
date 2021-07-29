@@ -1,10 +1,9 @@
-archives.txt
-glfw-3.3.2.bin.WIN64.zip
-glfw-3.3.2.zip
-lua-5.3.5.tar.gz
-sqlite-amalgamation-3330000.zip
-sqlite-dll-win64-x64-3330000.zip
-sqlite-tools-win32-x86-3330000.zip
-tcc-0.9.27-win64-bin.zip
-tcc-0.9.27.tar.bz2
-winapi-full-for-0.9.27.zip
+glfw-bin        https://github.com/glfw/glfw/releases/download/3.3.4/glfw-3.3.4.bin.WIN64.zip
+glfw-src        https://github.com/glfw/glfw/releases/download/3.3.4/glfw-3.3.4.zip
+lua-src         https://www.lua.org/ftp/lua-5.3.6.tar.gz
+sqlite-src      https://www.sqlite.org/2021/sqlite-amalgamation-3360000.zip
+sqlite-bin      https://www.sqlite.org/2021/sqlite-dll-win64-x64-3360000.zip
+sqlite-tools    https://www.sqlite.org/2021/sqlite-tools-win32-x86-3360000.zip
+tcc-bin         http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip
+tcc-src         http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27.tar.bz2
+win-api         http://download.savannah.gnu.org/releases/tinycc/winapi-full-for-0.9.27.zip
