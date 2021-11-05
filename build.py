@@ -59,6 +59,9 @@ def main():
     cmd(f"7za x -otemp archives\\{filenames['glfw-src']}")
     cmd(f"7za x -otemp archives\\{filenames['win-api']}")
     cmd(f"cmd /c rename temp\\{filenames['win-api'][:-4]} win-api")
+    cmd(f"7za x -otemp archives\\{filenames['glut-bin']}")
+    cmd(f"7za x -otemp archives\\{filenames['curl-bin']}")
+    cmd(f"cmd /c rename temp\\curl-7.79.1-win64-mingw curl")
 
     print("Building Lua...")
     lua_src = [f for f in glob.glob("temp\\lua\\src\\*.c")
@@ -76,12 +79,22 @@ def main():
     cmd("cmd /c copy temp\\sqlite\\*.exe temp\\tcc")
     cmd("cmd /c copy temp\\sqlite\\*.h temp\\tcc\\include")
     cmd("cmd /c copy temp\\sqlite\\sqlite3.dll temp\\tcc")
-    cmd("cmd /c copy temp\\sqlite\\sqlite3.def temp\\tcc\\lib")
+    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\sqlite3.dll -o temp\\tcc\\lib\\sqlite3.def")
 
     print("Deploying GLFW...")
     cmd("cmd /c copy temp\\glfw-bin\\lib-mingw-w64\\glfw3.dll temp\\tcc")
     cmd("xcopy temp\\glfw-bin\\include temp\\tcc\\include /E")
     cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\glfw3.dll -o temp\\tcc\\lib\\glfw3.def")
+
+    print("Deploying FreeGLUT...")
+    cmd("cmd /c copy temp\\freeglut\\bin\\x64\\freeglut.dll temp\\tcc")
+    cmd("xcopy temp\\freeglut\\include temp\\tcc\\include /E")
+    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\freeglut.dll -o temp\\tcc\\lib\\freeglut.def")
+
+    print("Deploying cURL...")
+    cmd("cmd /c copy temp\\curl\\bin\\libcurl-x64.dll temp\\tcc\\libcurl.dll")
+    cmd("xcopy temp\\curl\\include temp\\tcc\\include /E")
+    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\libcurl.dll -o temp\\tcc\\lib\\libcurl.def")
 
     print("Deploying system headers...")
     cmd("cmd /c rename temp\\win-api\\include\\winapi\\windows.h windows.h.bak")
@@ -91,7 +104,7 @@ def main():
     cmd("temp\\tcc\\tcc.exe math.c -shared -o temp\\tcc\\m.dll")
     cmd("cmd /c move temp\\tcc\\m.def temp\\tcc\\lib")
 
-    print("TCC is available in temp\\tcc")
+    print("\nTCC is available in temp\\tcc")
     print("SQLite, Lua, and GLFW available as libraries (-lsqlite3, -llua, -lglfw3)")
     print("Try compiling the GLFW examples")
 

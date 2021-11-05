@@ -9,3 +9,4 @@ tcc-src         http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27.tar.
 win-api         http://download.savannah.gnu.org/releases/tinycc/winapi-full-for-0.9.27.zip
 glut-src        https://newcontinuum.dl.sourceforge.net/project/freeglut/freeglut/3.2.1/freeglut-3.2.1.tar.gz
 glut-bin        https://www.transmissionzero.co.uk/files/software/development/GLUT/freeglut-MinGW.zip
+curl-bin        https://curl.se/windows/dl-7.79.1_4/curl-7.79.1_4-win64-mingw.zip
