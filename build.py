@@ -61,7 +61,8 @@ def main():
     cmd(f"cmd /c rename temp\\{filenames['win-api'][:-4]} win-api")
     cmd(f"7za x -otemp archives\\{filenames['glut-bin']}")
     cmd(f"7za x -otemp archives\\{filenames['curl-bin']}")
-    cmd(f"cmd /c rename temp\\curl-7.79.1-win64-mingw curl")
+    curl_archive = glob.glob("temp\\curl-*")[0]
+    cmd(f"cmd /c rename {curl_archive} curl")
 
     print("Building Lua...")
     lua_src = [f for f in glob.glob("temp\\lua\\src\\*.c")
