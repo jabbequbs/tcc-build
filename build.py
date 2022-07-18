@@ -106,7 +106,6 @@ def main():
     cmd("cmd /c move temp\\tcc\\m.def temp\\tcc\\lib")
 
     print("\nTCC is available in temp\\tcc")
-    print("SQLite, Lua, and GLFW available as libraries (-lsqlite3, -llua, -lglfw3)")
     print("Try compiling the GLFW examples")
 
 
