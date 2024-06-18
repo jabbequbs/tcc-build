@@ -17,6 +17,7 @@ def cmd(command, check=True, **kwargs):
     if worker.wait() != 0:
         print(" ".join('"%s"' % p if " " in p else p for p in command))
         sys.exit(stdout.rstrip())
+    return stdout.rstrip()
 
 
 def main():
@@ -103,6 +104,11 @@ def main():
     print("Compiling extra math library...")
     cmd("temp\\tcc\\tcc.exe math.c -shared -o temp\\tcc\\m.dll")
     cmd("cmd /c move temp\\tcc\\m.def temp\\tcc\\lib")
+
+    print("Refreshing libraries...")
+    for lib in ("kernel32", "user32", "ws2_32"):
+        location = cmd(f"where {lib}.dll")
+        cmd(f"temp\\tcc\\tcc.exe -impdef {location} -o temp\\tcc\\lib\\{lib}.def")
 
     print("\nTCC is available in temp\\tcc")
     print("SQLite, Lua, and GLFW available as libraries (-lsqlite3, -llua, -lglfw3)")
