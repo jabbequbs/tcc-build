@@ -7,6 +7,6 @@ sqlite-tools    https://www.sqlite.org/2021/sqlite-tools-win32-x86-3360000.zip
 tcc-bin         http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip
 tcc-src         http://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27.tar.bz2
 win-api         http://download.savannah.gnu.org/releases/tinycc/winapi-full-for-0.9.27.zip
-glut-src        https://newcontinuum.dl.sourceforge.net/project/freeglut/freeglut/3.2.1/freeglut-3.2.1.tar.gz
+glut-src        https://github.com/freeglut/freeglut/releases/download/v3.6.0/freeglut-3.6.0.tar.gz
 glut-bin        https://www.transmissionzero.co.uk/files/software/development/GLUT/freeglut-MinGW.zip
-curl-bin        https://curl.se/windows/curl-win64-latest.zip
+curl-bin        https://curl.se/windows/dl-8.8.0_2/curl-8.8.0_2-win64-mingw.zip
