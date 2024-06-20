@@ -2,8 +2,11 @@
 
 import glob
 import os
+import shutil
 import subprocess
 import sys
+import tarfile
+import zipfile
 from urllib.request import urlopen
 
 
@@ -20,11 +23,28 @@ def cmd(command, check=True, **kwargs):
     return stdout.rstrip()
 
 
+def copy(source, destination):
+    destdir = destination[:-1] if destination[-1] == "\\" else os.path.dirname(destination)
+    os.makedirs(destdir, exist_ok=True)
+    if os.path.isdir(source):
+        shutil.copytree(source, destination)
+    elif os.path.isfile(source):
+        destination = os.path.join(destdir, os.path.basename(source))
+        shutil.copy2(source, destination)
+    else:
+        raise Exception(f"No such source: {source} -> {destination}")
+
+
+def rmdir(dirname):
+    if os.path.isdir(dirname):
+        cmd(f"cmd /c rmdir /s /q {dirname}")
+
+
 def main():
     os.chdir(os.path.dirname(__file__))
-    if os.path.isdir("temp"):
-        print("Clearing previous build...")
-        cmd("cmd /c rmdir /s /q temp")
+    print("Clearing previous build...")
+    rmdir("temp")
+    rmdir("shell")
 
     print("Loading archives...")
     with open("archives\\archives.txt") as f:
@@ -45,74 +65,84 @@ def main():
                 f.write(response.read())
 
     print("Extracting archives...")
-    os.mkdir("temp")
-    cmd(f"7za x -otemp archives\\{filenames['tcc-bin']}")
-    cmd(f"7za x -otemp archives\\{filenames['lua-src']}")
-    cmd(f"7za x -otemp temp\\{filenames['lua-src'][:-3]}")
-    cmd(f"cmd /c rename temp\\{filenames['lua-src'][:-7]} lua")
-    cmd(f"7za x -otemp archives\\{filenames['sqlite-src']}")
-    cmd(f"cmd /c rename temp\\{filenames['sqlite-src'][:-4]} sqlite")
-    cmd(f"7za x -otemp\\sqlite archives\\{filenames['sqlite-bin']}")
-    cmd(f"7za x -otemp archives\\{filenames['sqlite-tools']}")
-    cmd(f"cmd /c move temp\\{filenames['sqlite-tools'][:-4]}\\* temp\\sqlite")
-    cmd(f"7za x -otemp archives\\{filenames['glfw-bin']}")
-    cmd(f"cmd /c rename temp\\{filenames['glfw-bin'][:-4]} glfw-bin")
-    cmd(f"7za x -otemp archives\\{filenames['glfw-src']}")
-    cmd(f"7za x -otemp archives\\{filenames['win-api']}")
-    cmd(f"cmd /c rename temp\\{filenames['win-api'][:-4]} win-api")
-    cmd(f"7za x -otemp archives\\{filenames['glut-bin']}")
-    cmd(f"7za x -otemp archives\\{filenames['curl-bin']}")
-    curl_archive = glob.glob("temp\\curl-*")[0]
-    cmd(f"cmd /c rename {curl_archive} curl")
+    for dirname, archiveName in filenames.items():
+        print("  "+archiveName)
+        if archiveName.lower().endswith(".zip"):
+            zArchive = zipfile.ZipFile(f"archives\\{archiveName}")
+            members = [m.filename for m in zArchive.infolist() if not m.is_dir()]
+        elif archiveName.lower().endswith(".tar.gz") or archiveName.lower().endswith(".tar.bz2"):
+            zArchive = tarfile.open(f"archives\\{archiveName}")
+            members = [m.name for m in zArchive.getmembers() if m.isfile()]
+        else:
+            raise Exception("Unhandled archive type: " + archiveName)
+        parent = os.path.commonprefix(members)
+        if "/" not in parent:
+            parent = ""
+        parent = parent.split("/")[0]+"/"
+        for filename in members:
+            if filename[0] in ("/", "\\") or ".." in filename:
+                raise Exception(f"Dangerous filename: {filename}")
+            destination = os.path.join("temp", dirname, filename.replace(parent, "", 1)).replace("/", os.sep)
+            os.makedirs(os.path.dirname(destination), exist_ok=True)
+            if archiveName.lower().endswith(".zip"):
+                with open(destination, "wb") as f:
+                    f.write(zArchive.read(filename))
+            else:
+                with open(destination, "wb") as f:
+                    f.write(zArchive.extractfile(filename).read())
+
+    copy("scripts\\cmdrc.bat", "shell\\cmdrc.bat")
+    copy("temp\\tcc-bin", "shell\\tcc")
 
     print("Building Lua...")
-    lua_src = [f for f in glob.glob("temp\\lua\\src\\*.c")
+    os.mkdir("shell\\lua")
+    lua_src = [f for f in glob.glob("temp\\lua-src\\src\\*.c")
         if os.path.basename(f) not in ("lua.c", "luac.c")]
-    cmd("temp\\tcc\\tcc.exe -D LUA_BUILD_AS_DLL %s -shared -o temp\\tcc\\lua.dll" % (
+    cmd("shell\\tcc\\tcc.exe -D LUA_BUILD_AS_DLL %s -shared -o shell\\lua\\lua.dll" % (
         " ".join(lua_src),))
-    cmd("cmd /c move temp\\tcc\\lua.def temp\\tcc\\lib")
-    cmd("temp\\tcc\\tcc.exe %s temp\\lua\\src\\luac.c -o temp\\tcc\\luac.exe" % (
+    cmd("cmd /c move shell\\lua\\lua.def shell\\tcc\\lib")
+    cmd("shell\\tcc\\tcc.exe %s temp\\lua-src\\src\\luac.c -o shell\\lua\\luac.exe" % (
         " ".join(lua_src),))
-    cmd("temp\\tcc\\tcc.exe -llua temp\\lua\\src\\lua.c -o temp\\tcc\\lua.exe")
+    cmd("shell\\tcc\\tcc.exe -llua temp\\lua-src\\src\\lua.c -o shell\\lua\\lua.exe")
     for header in ("lua.h", "luaconf.h", "lualib.h", "lauxlib.h", "lua.hpp"):
-        cmd("cmd /c copy temp\\lua\\src\\%s temp\\tcc\\include" % header)
+        copy(f"temp\\lua-src\\src\\{header}", f"shell\\tcc\\include\\{header}")
 
     print("Deploying SQLite...")
-    cmd("cmd /c copy temp\\sqlite\\*.exe temp\\tcc")
-    cmd("cmd /c copy temp\\sqlite\\*.h temp\\tcc\\include")
-    cmd("cmd /c copy temp\\sqlite\\sqlite3.dll temp\\tcc")
-    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\sqlite3.dll -o temp\\tcc\\lib\\sqlite3.def")
+    os.mkdir("shell\\sqlite")
+    cmd("cmd /c copy temp\\sqlite-tools\\*.exe shell\\sqlite")
+    cmd("cmd /c copy temp\\sqlite-src\\*.h shell\\tcc\\include")
+    cmd("cmd /c copy temp\\sqlite-bin\\sqlite3.dll shell\\sqlite")
+    cmd("shell\\tcc\\tcc.exe -impdef shell\\sqlite\\sqlite3.dll -o shell\\tcc\\lib\\sqlite3.def")
 
     print("Deploying GLFW...")
-    cmd("cmd /c copy temp\\glfw-bin\\lib-mingw-w64\\glfw3.dll temp\\tcc")
-    cmd("xcopy temp\\glfw-bin\\include temp\\tcc\\include /E")
-    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\glfw3.dll -o temp\\tcc\\lib\\glfw3.def")
+    cmd("cmd /c copy temp\\glfw-bin\\lib-mingw-w64\\glfw3.dll shell\\tcc")
+    cmd("xcopy temp\\glfw-bin\\include shell\\tcc\\include /E")
+    cmd("shell\\tcc\\tcc.exe -impdef shell\\tcc\\glfw3.dll -o shell\\tcc\\lib\\glfw3.def")
 
     print("Deploying FreeGLUT...")
-    cmd("cmd /c copy temp\\freeglut\\bin\\x64\\freeglut.dll temp\\tcc")
-    cmd("xcopy temp\\freeglut\\include temp\\tcc\\include /E")
-    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\freeglut.dll -o temp\\tcc\\lib\\freeglut.def")
+    cmd("cmd /c copy temp\\glut-bin\\bin\\x64\\freeglut.dll shell\\tcc")
+    cmd("xcopy temp\\glut-bin\\include shell\\tcc\\include /E")
+    cmd("shell\\tcc\\tcc.exe -impdef shell\\tcc\\freeglut.dll -o shell\\tcc\\lib\\freeglut.def")
 
     print("Deploying cURL...")
-    cmd("cmd /c copy temp\\curl\\bin\\libcurl-x64.dll temp\\tcc\\libcurl.dll")
-    cmd("xcopy temp\\curl\\include temp\\tcc\\include /E")
-    cmd("temp\\tcc\\tcc.exe -impdef temp\\tcc\\libcurl.dll -o temp\\tcc\\lib\\libcurl.def")
+    cmd("cmd /c copy temp\\curl-bin\\bin\\libcurl-x64.dll shell\\tcc\\libcurl.dll")
+    cmd("xcopy temp\\curl-bin\\include shell\\tcc\\include /E")
+    cmd("shell\\tcc\\tcc.exe -impdef shell\\tcc\\libcurl.dll -o shell\\tcc\\lib\\libcurl.def")
 
     print("Deploying system headers...")
     cmd("cmd /c rename temp\\win-api\\include\\winapi\\windows.h windows.h.bak")
-    cmd("xcopy temp\\win-api\\include temp\\tcc\\include /E")
+    cmd("xcopy temp\\win-api\\include shell\\tcc\\include /E")
 
     print("Compiling extra math library...")
-    cmd("temp\\tcc\\tcc.exe math.c -shared -o temp\\tcc\\m.dll")
-    cmd("cmd /c move temp\\tcc\\m.def temp\\tcc\\lib")
+    cmd("shell\\tcc\\tcc.exe math.c -shared -o shell\\tcc\\m.dll")
+    cmd("cmd /c move shell\\tcc\\m.def shell\\tcc\\lib")
 
     print("Refreshing libraries...")
     for lib in ("kernel32", "user32", "ws2_32"):
         location = cmd(f"where {lib}.dll")
-        cmd(f"temp\\tcc\\tcc.exe -impdef {location} -o temp\\tcc\\lib\\{lib}.def")
+        cmd(f"shell\\tcc\\tcc.exe -impdef {location} -o shell\\tcc\\lib\\{lib}.def")
 
-    print("\nTCC is available in temp\\tcc")
-    print("Try compiling the GLFW examples")
+    cmd("cmd /c start cmd /k cmdrc.bat", cwd=os.path.abspath("shell"))
 
 
 if __name__ == '__main__':

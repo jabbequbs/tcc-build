@@ -1,4 +1,5 @@
 temp/*
+shell/*
 *.zip
 *.gz
 *.bz2
