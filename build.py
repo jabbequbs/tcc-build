@@ -74,7 +74,7 @@ def main():
             zArchive = tarfile.open(f"archives\\{archiveName}")
             members = [m.name for m in zArchive.getmembers() if m.isfile()]
         else:
-            raise Exception("Unhandled archive type: " + archiveName)
+            print("    Unknown archive type")
         parent = os.path.commonprefix(members)
         if "/" not in parent:
             parent = ""
@@ -94,6 +94,13 @@ def main():
     copy("scripts\\cmdrc.bat", "shell\\cmdrc.bat")
     copy("temp\\tcc-bin", "shell\\tcc")
 
+    print("Building make/busybox...")
+    copy("temp\\tcc-bin", "temp\\busybox\\tcc")
+    copy("scripts\\makebox.bat", "temp\\busybox\\makebox.bat")
+    cmd("cmd /c call makebox.bat", cwd="temp\\busybox")
+    copy("temp\\busybox\\make.exe", "shell\\tcc\\make.exe")
+    copy("temp\\busybox\\sh.exe", "shell\\tcc\\sh.exe")
+
     print("Building Lua...")
     os.mkdir("shell\\lua")
     lua_src = [f for f in glob.glob("temp\\lua-src\\src\\*.c")
@@ -106,6 +113,10 @@ def main():
     cmd("shell\\tcc\\tcc.exe -llua temp\\lua-src\\src\\lua.c -o shell\\lua\\lua.exe")
     for header in ("lua.h", "luaconf.h", "lualib.h", "lauxlib.h", "lua.hpp"):
         copy(f"temp\\lua-src\\src\\{header}", f"shell\\tcc\\include\\{header}")
+    cmd("shell\\tcc\\tcc.exe -llua -luser32 temp\\srlua\\srlua.c -o shell\\lua\\srlua.exe")
+    cmd("shell\\tcc\\tcc.exe temp\\srlua\\glue.c -o shell\\lua\\glue.exe")
+    cmd("shell\\lua\\glue.exe shell\\lua\\srlua.exe scripts\\lfreeze.lua shell\\lua\\lfreeze.exe")
+    cmd("shell\\lua\\lfreeze.exe temp\\fennel-src\\fennel shell\\lua\\fennel.exe shell\\lua\\glue.exe shell\\lua\\srlua.exe")
 
     print("Deploying SQLite...")
     os.mkdir("shell\\sqlite")
@@ -142,7 +153,7 @@ def main():
         location = cmd(f"where {lib}.dll")
         cmd(f"shell\\tcc\\tcc.exe -impdef {location} -o shell\\tcc\\lib\\{lib}.def")
 
-    cmd("cmd /c start cmd /k cmdrc.bat", cwd=os.path.abspath("shell"))
+    print("\nUse 'cmd /k cmdrc.bat' in the 'shell' folder")
 
 
 if __name__ == '__main__':
