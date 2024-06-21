@@ -11,5 +11,5 @@ busybox         http://download.savannah.gnu.org/releases/tinycc/tcc-busybox-for
 glut-src        https://github.com/freeglut/freeglut/releases/download/v3.6.0/freeglut-3.6.0.tar.gz
 glut-bin        https://www.transmissionzero.co.uk/files/software/development/GLUT/freeglut-MinGW.zip
 curl-bin        https://curl.se/windows/dl-8.8.0_2/curl-8.8.0_2-win64-mingw.zip
-fennel-src		https://fennel-lang.org/downloads/fennel-1.4.2.tar.gz
-srlua			https://github.com/LuaDist/srlua/archive/refs/heads/master.zip
+fennel-src      https://fennel-lang.org/downloads/fennel-1.4.2.tar.gz
+srlua           https://github.com/LuaDist/srlua/archive/refs/heads/master.zip

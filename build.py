@@ -149,7 +149,7 @@ def main():
     cmd("cmd /c move shell\\tcc\\m.def shell\\tcc\\lib")
 
     print("Refreshing libraries...")
-    for lib in ("kernel32", "user32", "ws2_32"):
+    for lib in ("kernel32", "user32", "ws2_32", "opengl32"):
         location = cmd(f"where {lib}.dll")
         cmd(f"shell\\tcc\\tcc.exe -impdef {location} -o shell\\tcc\\lib\\{lib}.def")
 
