@@ -1,5 +1,6 @@
 #! python3
 
+import argparse
 import glob
 import os
 import shutil
@@ -41,10 +42,18 @@ def rmdir(dirname):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--clean", action="store_true",
+        help="Remove existing temp and shell directories")
+    parser.add_argument("--download", action="store_true",
+        help="Just download and extract the archives")
+    args = parser.parse_args()
+
     os.chdir(os.path.dirname(__file__))
-    print("Clearing previous build...")
-    rmdir("temp")
-    rmdir("shell")
+    if args.clean:
+        print("Clearing previous build...")
+        rmdir("temp")
+        rmdir("shell")
 
     print("Loading archives...")
     with open("archives\\archives.txt") as f:
@@ -91,6 +100,9 @@ def main():
                 with open(destination, "wb") as f:
                     f.write(zArchive.extractfile(filename).read())
 
+    if args.download:
+        return
+
     copy("scripts\\cmdrc.bat", "shell\\cmdrc.bat")
     copy("temp\\tcc-bin", "shell\\tcc")
 
@@ -118,6 +130,16 @@ def main():
     cmd("shell\\lua\\glue.exe shell\\lua\\srlua.exe scripts\\lfreeze.lua shell\\lua\\lfreeze.exe")
     cmd("shell\\lua\\lfreeze.exe temp\\fennel-src\\fennel shell\\lua\\fennel.exe shell\\lua\\glue.exe shell\\lua\\srlua.exe")
 
+    print("Building lua-cjson...")
+    # This command manually determined for this particular version of cjson by looking at the rockspec
+    cmd("shell\\tcc\\tcc.exe -shared -o cjson.dll lua_cjson.c strbuf.c fpconv.c -llua -Dstrtoll=_strtoi64 -D_MSC_VER",
+        cwd="temp\\lua-cjson")
+    cmd("cmd /c copy temp\\lua-cjson\\cjson.dll shell\\lua\\cjson.dll")
+    copy("temp\\lua-cjson\\lua\\cjson\\util.lua", "shell\\lua\\lua\\cjson\\util.lua")
+
+    # print("Building luasocket...")
+    # still broken, need to analyze the rockspec and try some more things
+
     print("Deploying SQLite...")
     os.mkdir("shell\\sqlite")
     cmd("cmd /c copy temp\\sqlite-tools\\*.exe shell\\sqlite")
@@ -140,12 +162,15 @@ def main():
     cmd("xcopy temp\\curl-bin\\include shell\\tcc\\include /E")
     cmd("shell\\tcc\\tcc.exe -impdef shell\\tcc\\libcurl.dll -o shell\\tcc\\lib\\libcurl.def")
 
+    print("Deploying Python...")
+    copy("temp\\python", "shell\\python")
+
     print("Deploying system headers...")
     cmd("cmd /c rename temp\\win-api\\include\\winapi\\windows.h windows.h.bak")
     cmd("xcopy temp\\win-api\\include shell\\tcc\\include /E")
 
     print("Compiling extra math library...")
-    cmd("shell\\tcc\\tcc.exe math.c -shared -o shell\\tcc\\m.dll")
+    cmd("shell\\tcc\\tcc.exe scripts\\math.c -shared -o shell\\tcc\\m.dll")
     cmd("cmd /c move shell\\tcc\\m.def shell\\tcc\\lib")
 
     print("Refreshing libraries...")
