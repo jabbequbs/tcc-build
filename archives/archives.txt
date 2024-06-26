@@ -11,9 +11,9 @@ busybox         http://download.savannah.gnu.org/releases/tinycc/tcc-busybox-for
 glut-src        https://github.com/freeglut/freeglut/releases/download/v3.6.0/freeglut-3.6.0.tar.gz
 glut-bin        https://www.transmissionzero.co.uk/files/software/development/GLUT/freeglut-MinGW.zip
 curl-bin        https://curl.se/windows/dl-8.8.0_2/curl-8.8.0_2-win64-mingw.zip
+python          https://www.python.org/ftp/python/3.12.4/python-3.12.4-embed-amd64.zip
 fennel-src      https://fennel-lang.org/downloads/fennel-1.4.2.tar.gz
 srlua           https://github.com/LuaDist/srlua/archive/dd0fc9461b4722d673631245d616e92c7c93c590.zip
 lua-cjson       https://github.com/openresty/lua-cjson/archive/c92ecda53337490633c95e6ae00e322dc9ad1fb8.zip
 luasocket       https://github.com/lunarmodules/luasocket/archive/95b7efa9da506ef968c1347edf3fc56370f0deed.zip
-python          https://www.python.org/ftp/python/3.12.4/python-3.12.4-embed-amd64.zip
-luarocks        https://luarocks.org/releases/luarocks-3.11.1-windows-64.zip
+lunajson        https://github.com/grafi-tt/lunajson/archive/250afac121df831f449d6370ddf406673f6f9c2b.zip
