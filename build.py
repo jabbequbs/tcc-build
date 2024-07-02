@@ -77,32 +77,10 @@ def main():
 
     print("Extracting archives...")
     for dirname, archiveName in filenames.items():
-        print("  "+archiveName)
         if os.path.isdir("temp\\"+dirname):
             continue
-        if archiveName.lower().endswith(".zip"):
-            zArchive = zipfile.ZipFile(f"archives\\{archiveName}")
-            members = [m.filename for m in zArchive.infolist() if not m.is_dir()]
-        elif archiveName.lower().endswith(".tar.gz") or archiveName.lower().endswith(".tar.bz2"):
-            zArchive = tarfile.open(f"archives\\{archiveName}")
-            members = [m.name for m in zArchive.getmembers() if m.isfile()]
-        else:
-            print("    Unknown archive type")
-        parent = os.path.commonprefix(members)
-        if "/" not in parent:
-            parent = ""
-        parent = parent.split("/")[0]+"/"
-        for filename in members:
-            if filename[0] in ("/", "\\") or ".." in filename:
-                raise Exception(f"Dangerous filename: {filename}")
-            destination = os.path.join("temp", dirname, filename.replace(parent, "", 1)).replace("/", os.sep)
-            os.makedirs(os.path.dirname(destination), exist_ok=True)
-            if archiveName.lower().endswith(".zip"):
-                with open(destination, "wb") as f:
-                    f.write(zArchive.read(filename))
-            else:
-                with open(destination, "wb") as f:
-                    f.write(zArchive.extractfile(filename).read())
+        print("  "+archiveName)
+        cmd(f"py scripts\\extract.py archives\\{archiveName} temp\\{dirname}")
 
     if args.download:
         return
@@ -181,9 +159,9 @@ def main():
         cmd("xcopy temp\\curl-bin\\include shell\\tcc\\include /E")
         cmd("shell\\tcc\\tcc.exe -impdef shell\\tcc\\libcurl.dll -o shell\\tcc\\lib\\libcurl.def")
 
-    if not os.path.isfile("shell\\python\\python.exe"):
-        print("Deploying Python...")
-        copy("temp\\python", "shell\\python")
+    for prog in ("python", "mingit", "love2d", "npp"):
+        print(f"Deploying {prog}...")
+        copy(f"temp\\{prog}", f"shell\\{prog}")
 
     if args.clean:
         print("Deploying system headers...")

@@ -11,6 +11,6 @@ exit /b
 
 :addpath
 set Path=%~1;%Path%
-rem if exist %~1\bin\ set Path=%Path%;%~1\bin
+if exist %~1\cmd\ set Path=%~1\cmd;%Path%
 rem if exist %~1\Scripts\ set Path=%Path%;%~1\Scripts
 exit /b

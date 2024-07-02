@@ -17,3 +17,6 @@ srlua           https://github.com/LuaDist/srlua/archive/dd0fc9461b4722d67363124
 lua-cjson       https://github.com/openresty/lua-cjson/archive/c92ecda53337490633c95e6ae00e322dc9ad1fb8.zip
 luasocket       https://github.com/lunarmodules/luasocket/archive/95b7efa9da506ef968c1347edf3fc56370f0deed.zip
 lunajson        https://github.com/grafi-tt/lunajson/archive/250afac121df831f449d6370ddf406673f6f9c2b.zip
+mingit          https://github.com/git-for-windows/git/releases/download/v2.45.2.windows.1/MinGit-2.45.2-64-bit.zip
+love2d          https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip
+npp             https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.8/npp.8.6.8.portable.x64.zip
