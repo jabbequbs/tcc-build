@@ -3,6 +3,7 @@
 import argparse
 import os
 import pathlib
+import subprocess
 import sys
 import tarfile
 import zipfile
@@ -19,13 +20,19 @@ def main():
     elif args.archive.lower().endswith(".tar.gz") or args.archive.lower().endswith(".tar.bz2"):
         zArchive = tarfile.open(args.archive)
         members = [m.name for m in zArchive.getmembers() if m.isfile()]
+    elif args.archive.lower().endswith(".7z"):
+        command = ["7za", "x", f"-o{args.destination}", args.archive]
+        result = subprocess.check_output(command)
+        zArchive = None
+        members = []
     else:
         sys.exit("Unknown archive type")
 
     for filename in members:
         if filename[0] in ("/", "\\") or ".." in filename:
             raise Exception(f"Dangerous filename: {filename}")
-    zArchive.extractall(args.destination)
+    if zArchive:
+        zArchive.extractall(args.destination)
 
     # raise archive members to a common parent
     dest = pathlib.Path(args.destination)
